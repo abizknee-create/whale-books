@@ -3,7 +3,10 @@ export function mergeState(a,b){
   const out={books:{},cats:{},events:{}};
   for(const k of ['books','cats']){const keys=new Set([...Object.keys(a[k]||{}),...Object.keys(b[k]||{})]);
     for(const id of keys){const x=(a[k]||{})[id],y=(b[k]||{})[id];out[k][id]=!x?y:!y?x:((y.u||0)>(x.u||0)?y:x);}}
-  out.events={...(b.events||{}),...(a.events||{})};
+  // 이벤트: 합집합. 한쪽이라도 취소(x)면 취소 유지 → 다른 기기 병합으로 되살아나지 않음.
+  const ea=a.events||{},eb=b.events||{};
+  for(const id of new Set([...Object.keys(ea),...Object.keys(eb)])){const x=ea[id],y=eb[id];
+    out.events[id]=!x?{...y}:!y?{...x}:((x.x||y.x)?{...x,x:1}:{...x});}
   return out;
 }
 const u=(url,path,tok)=>`${url.replace(/\/$/,'')}/${path}.json?auth=${encodeURIComponent(tok)}`;

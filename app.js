@@ -20,6 +20,14 @@ localStorage.removeItem('wb_cfg');
 if(!S){S={books:{},cats:{},events:{}};seedImport(SEED);}
 let sel=localStorage.getItem('wb_sel')||'';
 let calMonth=new Date();calMonth.setDate(1);
+// 스탬프를 빈 별로 되돌리면(m=0 이벤트) 그 책의 직전 리셋 이후 메달 이벤트를 취소(x=1) 표시.
+// m=0 이벤트에서 결정적으로 계산되므로 기존 기록·다른 기기 병합 후에도 같은 결과가 나와요.
+function normalizeEvents(st){const byB={};for(const[id,e]of Object.entries(st.events||{}))(byB[e.b]=byB[e.b]||[]).push([id,e]);
+  let ch=false;for(const list of Object.values(byB)){list.sort((a,b)=>a[1].t-b[1].t);let cyc=[];
+    for(const[,e]of list){if(e.m>0){if(!e.x)cyc.push(e);}else if(!e.x){for(const c of cyc){c.x=1;ch=true;}cyc=[];}}}
+  return ch;}
+const live=e=>e.m>0&&!e.x;
+if(normalizeEvents(S))localStorage.setItem('wb_state',JSON.stringify(S));
 function save(){localStorage.setItem('wb_state',JSON.stringify(S));scheduleSync();}
 function liveCats(){return Object.values(S.cats).filter(c=>!c.del).sort((a,b)=>(a.o||0)-(b.o||0));}
 function liveBooks(){return Object.values(S.books).filter(b=>!b.del&&S.cats[b.c]&&!S.cats[b.c].del);}
@@ -54,6 +62,7 @@ function renderContent(){
 // ---------- 스탬프 ----------
 function stamp(id,btn){const b=S.books[id];const prev=b.m||0;const m=(prev+1)%4;b.m=m;b.u=now();
   const t=new Date();const eid=uid();S.events[eid]={b:id,m,t:t.getTime(),d:dkey(t),title:b.title};
+  if(!m)normalizeEvents(S);
   save();render();
   const nb=document.querySelector(`[data-stamp="${id}"]`);if(nb&&m)nb.classList.add('pop');
   if(m)celebrate(m,nb||btn);else{toast('도장을 다시 처음부터! 🫧');sound(0);}
@@ -79,7 +88,7 @@ function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clea
 // ---------- 출석부 ----------
 function renderAtt(){
   const y=calMonth.getFullYear(),mo=calMonth.getMonth();const prefix=`${y}-${pad(mo+1)}`;
-  const ev=Object.values(S.events).filter(e=>e.m>0&&e.d.startsWith(prefix));
+  const ev=Object.values(S.events).filter(e=>live(e)&&e.d.startsWith(prefix));
   const byDay={};ev.forEach(e=>{(byDay[e.d]=byDay[e.d]||[]).push(e)});
   const days=Object.keys(byDay).length;const medals=[0,0,0,0];ev.forEach(e=>medals[e.m]++);
   const first=new Date(y,mo,1).getDay(),last=new Date(y,mo+1,0).getDate();const today=dkey(new Date());
@@ -92,7 +101,7 @@ function renderAtt(){
    <div class="sum"><div>출석한 날<b>${days}일</b></div><div>이번 달 읽은 책<b>${ev.length}권</b></div><div>메달<b style="font-size:24px">🥇${medals[3]} 🥈${medals[2]} 🥉${medals[1]}</b></div></div>${g}
    <div class="daylist" id="daylist"><p class="help" style="color:#557">날짜를 누르면 그날 읽은 책이 보여요. (메달을 올릴 때마다 1권으로 셉니다)</p></div></div>`;
 }
-function showDay(k){const ev=Object.values(S.events).filter(e=>e.m>0&&e.d===k).sort((a,b)=>a.t-b.t);
+function showDay(k){const ev=Object.values(S.events).filter(e=>live(e)&&e.d===k).sort((a,b)=>a.t-b.t);
   $('#daylist').innerHTML=`<h3 style="font-family:Jua;font-weight:normal">📖 ${k} — ${ev.length}권</h3>`+(ev.length?ev.map(e=>`<div>${MEDAL[e.m].e} ${esc(S.books[e.b]?.title||e.title)} <span style="color:#89a">${new Date(e.t).toTimeString().slice(0,5)}</span></div>`).join(''):'<div>이 날은 기록이 없어요 🫧</div>');}
 
 // ---------- 모달 ----------
@@ -109,7 +118,7 @@ function bookForm(b,catId){const cats=liveCats();
   ${b?`<label>메달</label><select name="m">${MEDAL.map((x,i)=>`<option value="${i}" ${i===(b.m||0)?'selected':''}>${x.e} ${i?x.n:'없음'}</option>`).join('')}</select>`:''}
   <div class="row">${b?'<button type="button" class="btn danger" id="delB">🗑️ 삭제</button>':''}<button type="button" class="btn" data-close>취소</button><button class="btn primary">저장</button></div></form>`,
   fd=>{const o={title:String(fd.get('title')).trim(),author:String(fd.get('author')).trim(),c:fd.get('c')};if(!o.title)return false;
-    if(b){Object.assign(b,o,{m:+fd.get('m'),u:now()});}else{const id=uid();S.books[id]={id,...o,m:0,o:now(),u:now()};}save();render();toast('저장했어요 🐬');});
+    if(b){const pm=b.m||0,nm=+fd.get('m');Object.assign(b,o,{m:nm,u:now()});if(pm&&!nm){const t=new Date();S.events[uid()]={b:b.id,m:0,t:t.getTime(),d:dkey(t),title:b.title};normalizeEvents(S);}}else{const id=uid();S.books[id]={id,...o,m:0,o:now(),u:now()};}save();render();toast('저장했어요 🐬');});
   if(b)$('#delB').onclick=()=>{confirmBox(`"${esc(b.title)}" 책을 지울까요?`,()=>{b.del=1;b.u=now();save();render();});};}
 
 // ---------- PDF ----------
@@ -140,7 +149,7 @@ let syncTimer,syncing=false,lastSync='',syncErr='';
 function scheduleSync(){clearTimeout(syncTimer);syncTimer=setTimeout(doSync,1500);}
 async function doSync(quiet=true){
   if(!currentUser()||syncing||!navigator.onLine)return;syncing=true;
-  try{const tok=await idToken();const remote=await pull(dbUrl(),DATA_PATH,tok);const R={books:remote.books||{},cats:remote.cats||{},events:remote.events||{}};const merged=mergeState(S,R);
+  try{const tok=await idToken();const remote=await pull(dbUrl(),DATA_PATH,tok);const R={books:remote.books||{},cats:remote.cats||{},events:remote.events||{}};const merged=mergeState(S,R);normalizeEvents(merged);
     const changedLocal=JSON.stringify(merged)!==JSON.stringify(S);const changedRemote=JSON.stringify(merged)!==JSON.stringify(R);
     if(changedRemote)await push(dbUrl(),DATA_PATH,tok,merged);
     if(changedLocal){S=merged;localStorage.setItem('wb_state',JSON.stringify(S));if($('#modal').classList.contains('hidden'))render();}
@@ -163,7 +172,7 @@ function settings(){
   const o=$('#logoutBtn');if(o)o.onclick=async()=>{await signOutUser();closeModal();toast('로그아웃했어요 (이 기기 기록은 남아요)');};
   const n=$('#syncNow');if(n)n.onclick=()=>doSync(false);
   $('#expBtn').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:'application/json'}));a.download=`고래책방-백업-${dkey(new Date())}.json`;a.click();};
-  $('#impBtn').onclick=()=>{const i=document.createElement('input');i.type='file';i.accept='application/json';i.onchange=async()=>{try{const j=JSON.parse(await i.files[0].text());S=mergeState(S,j);save();render();closeModal();toast('백업을 합쳤어요');}catch(e){toast('백업 파일 오류');}};i.click();};
+  $('#impBtn').onclick=()=>{const i=document.createElement('input');i.type='file';i.accept='application/json';i.onchange=async()=>{try{const j=JSON.parse(await i.files[0].text());S=mergeState(S,j);normalizeEvents(S);save();render();closeModal();toast('백업을 합쳤어요');}catch(e){toast('백업 파일 오류');}};i.click();};
   $('#resetBtn').onclick=()=>confirmBox('이 기기의 모든 메달을 지울까요? (책 목록은 남아요)',()=>{for(const b of Object.values(S.books)){if(b.m){b.m=0;b.u=now();}}save();render();});
 }
 
@@ -203,4 +212,4 @@ render();updateLogin();
 let wasIn=false;onUser(u=>{updateLogin();if(u&&!wasIn)doSync(false);wasIn=!!u;});
 initAuth();window.addEventListener('online',()=>initAuth());
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
-window.__wb={get S(){return S},stamp,mergeState};
+window.__wb={get S(){return S},stamp,mergeState,normalizeEvents};
