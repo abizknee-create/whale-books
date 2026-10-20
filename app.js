@@ -1,7 +1,8 @@
 import {SEED} from './seed.js';
 import {extractBooks,readPdfItems} from './extract.js';
 import {mergeState,pull,push} from './sync.js';
-import {FIREBASE_DB_URL,DEFAULT_FAMILY_CODE} from './config.js';
+import {FIREBASE_DB_URL,DATA_PATH,firebaseReady} from './config.js';
+import {initAuth,onUser,currentUser,signIn,signOutUser,idToken} from './auth.js';
 
 const $=s=>document.querySelector(s);
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
@@ -15,7 +16,7 @@ const CHEER=['','우와! 동메달! 🐠','대단해! 은메달! 🐬','최고�
 
 // ---------- 상태 ----------
 let S=JSON.parse(localStorage.getItem('wb_state')||'null');
-let cfg=JSON.parse(localStorage.getItem('wb_cfg')||'{}');if(!cfg.code)cfg.code=DEFAULT_FAMILY_CODE;
+localStorage.removeItem('wb_cfg');
 if(!S){S={books:{},cats:{},events:{}};seedImport(SEED);}
 let sel=localStorage.getItem('wb_sel')||'';
 let calMonth=new Date();calMonth.setDate(1);
@@ -134,27 +135,33 @@ function previewImport(list,fname){
 }
 
 // ---------- 설정 / 동기화 ----------
-const dbUrl=()=>(cfg.url||FIREBASE_DB_URL||'').trim();
-let syncTimer,syncing=false,lastSync='';
+const dbUrl=()=>FIREBASE_DB_URL;
+let syncTimer,syncing=false,lastSync='',syncErr='';
 function scheduleSync(){clearTimeout(syncTimer);syncTimer=setTimeout(doSync,1500);}
 async function doSync(quiet=true){
-  if(!dbUrl()||!cfg.code||syncing||!navigator.onLine)return;syncing=true;
-  try{const remote=await pull(dbUrl(),cfg.code);const merged=mergeState(S,{books:remote.books||{},cats:remote.cats||{},events:remote.events||{}});
-    const changedLocal=JSON.stringify(merged)!==JSON.stringify(S);const changedRemote=JSON.stringify(merged)!==JSON.stringify({books:remote.books||{},cats:remote.cats||{},events:remote.events||{}});
-    if(changedRemote)await push(dbUrl(),cfg.code,merged);
+  if(!currentUser()||syncing||!navigator.onLine)return;syncing=true;
+  try{const tok=await idToken();const remote=await pull(dbUrl(),DATA_PATH,tok);const R={books:remote.books||{},cats:remote.cats||{},events:remote.events||{}};const merged=mergeState(S,R);
+    const changedLocal=JSON.stringify(merged)!==JSON.stringify(S);const changedRemote=JSON.stringify(merged)!==JSON.stringify(R);
+    if(changedRemote)await push(dbUrl(),DATA_PATH,tok,merged);
     if(changedLocal){S=merged;localStorage.setItem('wb_state',JSON.stringify(S));if($('#modal').classList.contains('hidden'))render();}
-    lastSync=new Date().toLocaleTimeString('ko-KR');if(!quiet)toast('☁️ 동기화 완료!');
-  }catch(e){console.warn(e);if(!quiet)toast('동기화 실패: '+e.message);}finally{syncing=false;}
+    lastSync=new Date().toLocaleTimeString('ko-KR');syncErr='';if(!quiet)toast('☁️ 동기화 완료!');
+  }catch(e){console.warn(e);syncErr=e.message;if(!quiet)toast('동기화 실패: '+e.message);}finally{syncing=false;updateLogin();}
 }
+function updateLogin(){const b=$('#loginBtn');if(!b)return;const u=currentUser();
+  b.textContent=u?(syncErr?'⚠️':'☁️'):'🔑';b.title=u?`${u.email} 로그인됨`:'구글로 로그인';b.classList.toggle('on',!!u&&!syncErr);}
+async function doSignIn(){if(!firebaseReady())return toast('아직 로그인 준비 중이에요 (설정값 필요)');if(!navigator.onLine)return toast('인터넷에 연결하면 로그인할 수 있어요');
+  try{await signIn();}catch(e){console.warn(e);toast('로그인 실패: '+(e.code||e.message));}}
+function loginHtml(){const u=currentUser();
+  if(u)return `<div class="login on"><p>☁️ <b>${esc(u.email)}</b> 로그인됨 — 모든 기기 기록이 함께 보여요</p>${syncErr?`<p class="help">⚠️ ${esc(syncErr)}</p>`:''}<p class="help">마지막 동기화: ${lastSync||'없음'}</p><div class="row"><button type="button" class="btn" id="syncNow">🔄 지금 동기화</button><button type="button" class="btn" id="logoutBtn">로그아웃</button></div></div>`;
+  return `<div class="login"><p>🔑 <b>구글로 로그인하면 모든 기기 기록이 함께 보여요</b></p><p class="help">로그인하지 않아도 이 기기에서는 그대로 쓸 수 있어요.</p><button type="button" class="btn primary" id="loginGo">🐳 구글로 로그인</button></div>`;}
 function settings(){
   modal(`<form><h3>⚙️ 설정 · 기기 동기화</h3>
-  <p class="help">아이패드와 안드로이드에서 같은 기록을 보려면 두 기기에 <b>같은 가족 코드</b>와 <b>Firebase 주소</b>를 넣어 주세요. 비워두면 이 기기에만 저장돼요(오프라인 사용 가능).</p>
-  <label>가족 코드 (영문/숫자, 남이 못 맞힐 만큼 길게)</label><input name="code" value="${esc(cfg.code||'')}" placeholder="예: yu-family-7392-whale">
-  <label>Firebase 데이터베이스 주소</label><input name="url" value="${esc(cfg.url||FIREBASE_DB_URL)}" placeholder="https://xxxx-default-rtdb.firebaseio.com">
-  <p class="help">마지막 동기화: ${lastSync||'없음'}</p>
+  ${loginHtml()}
   <div class="row"><button type="button" class="btn" id="expBtn">💾 백업 저장</button><button type="button" class="btn" id="impBtn">📂 백업 불러오기</button><button type="button" class="btn danger" id="resetBtn">초기화</button></div>
-  <div class="row"><button type="button" class="btn" data-close>닫기</button><button class="btn primary">저장 후 동기화</button></div></form>`,
-  fd=>{cfg={code:String(fd.get('code')).trim(),url:String(fd.get('url')).trim()};localStorage.setItem('wb_cfg',JSON.stringify(cfg));doSync(false);});
+  <div class="row"><button type="button" class="btn" data-close>닫기</button></div></form>`,()=>{});
+  const g=$('#loginGo');if(g)g.onclick=()=>{closeModal();doSignIn();};
+  const o=$('#logoutBtn');if(o)o.onclick=async()=>{await signOutUser();closeModal();toast('로그아웃했어요 (이 기기 기록은 남아요)');};
+  const n=$('#syncNow');if(n)n.onclick=()=>doSync(false);
   $('#expBtn').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:'application/json'}));a.download=`고래책방-백업-${dkey(new Date())}.json`;a.click();};
   $('#impBtn').onclick=()=>{const i=document.createElement('input');i.type='file';i.accept='application/json';i.onchange=async()=>{try{const j=JSON.parse(await i.files[0].text());S=mergeState(S,j);save();render();closeModal();toast('백업을 합쳤어요');}catch(e){toast('백업 파일 오류');}};i.click();};
   $('#resetBtn').onclick=()=>confirmBox('이 기기의 모든 메달을 지울까요? (책 목록은 남아요)',()=>{for(const b of Object.values(S.books)){if(b.m){b.m=0;b.u=now();}}save();render();});
@@ -181,6 +188,7 @@ $('#addMajor').onclick=()=>ask('＋ 대분류 추가','대분류 이름','',v=>{
 $('#importBtn').onclick=()=>$('#pdfFile').click();
 $('#pdfFile').onchange=e=>{importFiles([...e.target.files]);e.target.value='';};
 $('#setBtn').onclick=settings;
+$('#loginBtn').onclick=()=>currentUser()?settings():doSignIn();
 $('#menuBtn').onclick=()=>$('#side').classList.toggle('open');
 $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
 window.addEventListener('focus',()=>doSync());window.addEventListener('online',()=>doSync());
@@ -191,6 +199,8 @@ setInterval(()=>doSync(),20000);
 const bub=document.querySelector('.bubbles');for(let i=0;i<18;i++){const s=document.createElement('span');const z=8+Math.random()*28;Object.assign(s.style,{width:z+'px',height:z+'px',left:Math.random()*100+'%',animationDuration:(8+Math.random()*12)+'s',animationDelay:(-Math.random()*20)+'s'});bub.appendChild(s);}
 [['🐋','68%',0,26],['🦈','80%',-11,19],['🐠','40%',-5,30]].forEach(([e,top,dl,du])=>{const s=document.createElement('div');s.className='swimmer';s.textContent=e;Object.assign(s.style,{top,animationDelay:dl+'s',animationDuration:du+'s',transform:'scaleX(-1)',opacity:.55});document.querySelector('.sea').appendChild(s);});
 
-render();doSync();
+render();updateLogin();
+let wasIn=false;onUser(u=>{updateLogin();if(u&&!wasIn)doSync(false);wasIn=!!u;});
+initAuth();window.addEventListener('online',()=>initAuth());
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 window.__wb={get S(){return S},stamp,mergeState};

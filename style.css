@@ -102,3 +102,5 @@ tr.done1{background:#fff6ec}tr.done2{background:#f2f6fa}tr.done3{background:#fff
 }
 @media (max-width:760px){td.title .au2{display:block;font-size:13px;font-weight:normal;color:#4a7194}}
 td.title .au2{display:none}
+.login{background:#e8f6ff;border-radius:16px;padding:10px 14px;margin:8px 0}.login.on{background:#e6fff0}
+#loginBtn.on{box-shadow:0 0 0 3px #7cf0a8 inset}

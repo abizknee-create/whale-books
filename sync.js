@@ -1,4 +1,4 @@
-// Firebase Realtime Database REST 동기화 (SDK 불필요). 가족 코드 = 데이터 경로.
+// Firebase Realtime Database REST 동기화. 구글 로그인 ID 토큰(?auth=)으로만 접근 가능.
 export function mergeState(a,b){
   const out={books:{},cats:{},events:{}};
   for(const k of ['books','cats']){const keys=new Set([...Object.keys(a[k]||{}),...Object.keys(b[k]||{})]);
@@ -6,11 +6,13 @@ export function mergeState(a,b){
   out.events={...(b.events||{}),...(a.events||{})};
   return out;
 }
-export async function pull(url,code){
-  const r=await fetch(`${url.replace(/\/$/,'')}/families/${encodeURIComponent(code)}.json`,{cache:'no-store'});
-  if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();return j||{books:{},cats:{},events:{}};
+const u=(url,path,tok)=>`${url.replace(/\/$/,'')}/${path}.json?auth=${encodeURIComponent(tok)}`;
+const err=r=>new Error(r.status===401||r.status===403?'이 구글 계정은 허용되지 않았어요':'HTTP '+r.status);
+export async function pull(url,path,tok){
+  const r=await fetch(u(url,path,tok),{cache:'no-store'});
+  if(!r.ok)throw err(r);const j=await r.json();return j||{books:{},cats:{},events:{}};
 }
-export async function push(url,code,state){
-  const r=await fetch(`${url.replace(/\/$/,'')}/families/${encodeURIComponent(code)}.json`,{method:'PUT',body:JSON.stringify(state)});
-  if(!r.ok)throw new Error('HTTP '+r.status);
+export async function push(url,path,tok,state){
+  const r=await fetch(u(url,path,tok),{method:'PUT',body:JSON.stringify(state)});
+  if(!r.ok)throw err(r);
 }
