@@ -1,0 +1,27 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#0a6fb5"><meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="고래책방">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-192.png"><link rel="icon" href="icon.svg">
+<title>고래 책방 🐳</title><link rel="stylesheet" href="style.css"></head><body>
+<div class="sea"><div class="bubbles"></div><div class="wave"></div></div>
+<header class="top">
+ <button class="menu-btn" id="menuBtn" aria-label="메뉴">☰</button>
+ <h1>🐳 고래 책방</h1>
+ <nav><button class="tab on" data-view="books">📚 책 바다</button><button class="tab" data-view="att">📅 출석부</button></nav>
+ <div class="score" id="score"></div>
+ <button class="icon-btn" id="setBtn" aria-label="설정">⚙️</button>
+</header>
+<main>
+ <section id="vBooks" class="view">
+  <aside id="side"><div id="majors"></div>
+   <button class="soft" id="addMajor">＋ 대분류</button><button class="soft" id="importBtn">📄 PDF 불러오기</button></aside>
+  <div id="content"></div>
+ </section>
+ <section id="vAtt" class="view hidden"><div id="att"></div></section>
+</main>
+<input type="file" id="pdfFile" accept="application/pdf" multiple hidden>
+<div id="modal" class="modal hidden"><div class="card" id="modalCard"></div></div>
+<div id="fx"></div><div id="toast" class="toast"></div>
+<script type="module" src="app.js"></script></body></html>
