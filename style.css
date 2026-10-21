@@ -45,22 +45,22 @@ th.st,td.st{width:110px;text-align:center}
 td.ed{width:48px;padding:4px}
 .ed button{font-size:20px;border:none;background:none;min-width:44px;min-height:44px;opacity:.55}
 tr.done1{background:#fff6ec}tr.done2{background:#f2f6fa}tr.done3{background:#fff9d9}
-.stamp{width:84px;height:84px;border-radius:50%;border:4px dashed #9fd3ef;background:#f2fbff;font-size:20px;display:inline-flex;align-items:center;justify-content:center;flex-direction:column;color:#7ab5d6;position:relative;transition:transform .15s;font-family:inherit;padding:0}
+.stamp{width:84px;height:84px;border-radius:50%;border:4px dashed #9fd3ef;background:#f2fbff;font-size:20px;display:inline-flex;align-items:center;justify-content:center;flex-direction:column;color:#7ab5d6;position:relative;transition:transform .3s;font-family:inherit;padding:0}
 .stamp:active{transform:scale(.9)}
 .stamp .e{font-size:44px;line-height:1}.stamp small{font-size:12px}
 .stamp.m1{border:4px solid #a8642c;background:radial-gradient(circle at 35% 30%,#ffd2a1,var(--bronze));color:#5a2f0c}
 .stamp.m2{border:4px solid #8899a8;background:radial-gradient(circle at 35% 30%,#fff,var(--silver));color:#34495e}
 .stamp.m3{border:4px solid #d19a00;background:radial-gradient(circle at 35% 30%,#fff6c2,var(--gold));color:#7a5200;box-shadow:0 0 18px #ffe066}
-.stamp.pop{animation:pop .6s}
+.stamp.pop{animation:pop 1.2s}
 @keyframes pop{0%{transform:scale(.4) rotate(-30deg)}60%{transform:scale(1.35) rotate(10deg)}100%{transform:scale(1)}}
 .empty{color:#fff;font-size:22px;text-align:center;padding:40px}
 #fx{position:fixed;inset:0;pointer-events:none;z-index:50;overflow:hidden}
-.conf{position:absolute;font-size:34px;animation:fall 2.4s ease-in forwards}
+.conf{position:absolute;font-size:34px;animation:fall 4.8s ease-in forwards}
 @keyframes fall{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(var(--dx),var(--dy)) rotate(var(--r));opacity:0}}
-.bigmedal{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);text-align:center;animation:big 2.2s forwards;color:#fff;text-shadow:3px 3px 0 var(--deep)}
+.bigmedal{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);text-align:center;animation:big 4.4s forwards;color:#fff;text-shadow:3px 3px 0 var(--deep)}
 .bigmedal .m{font-size:170px;line-height:1;filter:drop-shadow(0 8px 0 rgba(0,0,0,.2))}.bigmedal .w{font-size:40px}
 @keyframes big{0%{transform:translate(-50%,-50%) scale(0) rotate(-200deg)}25%{transform:translate(-50%,-50%) scale(1.2) rotate(10deg)}35%,80%{transform:translate(-50%,-50%) scale(1)}100%{transform:translate(-50%,-50%) scale(1.1);opacity:0}}
-.dash{position:absolute;font-size:110px;top:60%;animation:dash 2.2s ease-in-out forwards}
+.dash{position:absolute;font-size:110px;top:60%;animation:dash 4.4s ease-in-out forwards}
 @keyframes dash{from{left:-160px}to{left:110vw}}
 .modal{position:fixed;inset:0;background:rgba(3,30,60,.55);z-index:40;display:flex;align-items:center;justify-content:center;padding:16px}
 .card{background:#fff;border-radius:26px;padding:20px;width:min(560px,100%);max-height:90vh;overflow:auto;font-size:18px;box-shadow:0 10px 0 rgba(0,0,0,.2)}

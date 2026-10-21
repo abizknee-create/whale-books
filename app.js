@@ -75,9 +75,9 @@ function celebrate(m,origin){
   for(let i=0;i<n;i++){const s=document.createElement('div');s.className='conf';s.textContent=items[i%items.length];
     const a=Math.random()*Math.PI*2,d=150+Math.random()*(m*180);s.style.left=cx+'px';s.style.top=cy+'px';
     s.style.setProperty('--dx',Math.cos(a)*d+'px');s.style.setProperty('--dy',(Math.sin(a)*d-80+Math.random()*300)+'px');s.style.setProperty('--r',(Math.random()*720-360)+'deg');
-    s.style.animationDelay=Math.random()*.3+'s';fx.appendChild(s);setTimeout(()=>s.remove(),3000);}
-  const big=document.createElement('div');big.className='bigmedal';big.innerHTML=`<div class="m">${MEDAL[m].e}</div><div class="w">${CHEER[m]}</div>`;fx.appendChild(big);setTimeout(()=>big.remove(),2300);
-  if(m>=2){const d=document.createElement('div');d.className='dash';d.textContent=m===3?'🐋':'🦈';d.style.transform='scaleX(-1)';fx.appendChild(d);setTimeout(()=>d.remove(),2300);}
+    s.style.animationDelay=Math.random()*.6+'s';fx.appendChild(s);setTimeout(()=>s.remove(),6000);}
+  const big=document.createElement('div');big.className='bigmedal';big.innerHTML=`<div class="m">${MEDAL[m].e}</div><div class="w">${CHEER[m]}</div>`;fx.appendChild(big);setTimeout(()=>big.remove(),4600);
+  if(m>=2){const d=document.createElement('div');d.className='dash';d.textContent=m===3?'🐋':'🦈';d.style.transform='scaleX(-1)';fx.appendChild(d);setTimeout(()=>d.remove(),4600);}
   if(navigator.vibrate)navigator.vibrate(m===3?[60,40,60,40,120]:[50]);
   sound(m);
 }
@@ -163,16 +163,34 @@ async function doSignIn(){if(!firebaseReady())return toast('아직 로그인 준
 function loginHtml(){const u=currentUser();
   if(u)return `<div class="login on"><p>☁️ <b>${esc(u.email)}</b> 로그인됨 — 모든 기기 기록이 함께 보여요</p>${syncErr?`<p class="help">⚠️ ${esc(syncErr)}</p>`:''}<p class="help">마지막 동기화: ${lastSync||'없음'}</p><div class="row"><button type="button" class="btn" id="syncNow">🔄 지금 동기화</button><button type="button" class="btn" id="logoutBtn">로그아웃</button></div></div>`;
   return `<div class="login"><p>🔑 <b>구글로 로그인하면 모든 기기 기록이 함께 보여요</b></p><p class="help">로그인하지 않아도 이 기기에서는 그대로 쓸 수 있어요.</p><button type="button" class="btn primary" id="loginGo">🐳 구글로 로그인</button></div>`;}
+function delMajorsDialog(){
+  const majors=[...new Set(liveCats().map(c=>c.major))];
+  if(!majors.length){toast('지울 대분류가 없어요');return;}
+  modal(`<form><h3>🗑️ 대분류 삭제</h3><p>지울 대분류를 고르세요. <b>안에 있는 책도 모두 지워지고 모든 기기에 반영돼요.</b> (출석부 기록은 그대로 남아요)</p>
+  <label><input type="checkbox" id="dmAll"> <b>전체 선택</b></label>
+  <div id="dmList" style="max-height:40vh;overflow:auto">${majors.map((m,i)=>`<label style="display:block"><input type="checkbox" class="dmChk" value="${i}"> ${esc(m)}</label>`).join('')}</div>
+  <div class="row"><button type="button" class="btn" data-close>취소</button><button type="button" class="btn danger" id="dmGo">선택 삭제</button></div></form>`,()=>{});
+  $('#dmAll').onchange=e=>document.querySelectorAll('.dmChk').forEach(c=>c.checked=e.target.checked);
+  $('#dmGo').onclick=()=>{const pick=[...document.querySelectorAll('.dmChk:checked')].map(c=>majors[+c.value]);
+    if(!pick.length){toast('대분류를 골라 주세요');return;}
+    const all=pick.length===majors.length;
+    confirmBox(`${all?'<b>모든 대분류</b>':pick.map(esc).join(', ')} (${pick.length}개)를 지울까요?<br>안에 있는 책도 모두 지워져요. 되돌릴 수 없어요!`,()=>{
+      const set=new Set(pick),t=now();
+      liveCats().filter(c=>set.has(c.major)).forEach(c=>{c.del=1;c.u=t;});
+      if(set.has(sel))sel='';save();render();toast(`대분류 ${pick.length}개를 지웠어요`);});};
+}
 function settings(){
   modal(`<form><h3>⚙️ 설정 · 기기 동기화</h3>
   ${loginHtml()}
   <div class="row"><button type="button" class="btn" id="expBtn">💾 백업 저장</button><button type="button" class="btn" id="impBtn">📂 백업 불러오기</button><button type="button" class="btn danger" id="resetBtn">초기화</button></div>
+  <div class="row"><button type="button" class="btn danger" id="delMajorsBtn">🗑️ 대분류 삭제(선택/전체)</button></div>
   <div class="row"><button type="button" class="btn" data-close>닫기</button></div></form>`,()=>{});
   const g=$('#loginGo');if(g)g.onclick=()=>{closeModal();doSignIn();};
   const o=$('#logoutBtn');if(o)o.onclick=async()=>{await signOutUser();closeModal();toast('로그아웃했어요 (이 기기 기록은 남아요)');};
   const n=$('#syncNow');if(n)n.onclick=()=>doSync(false);
   $('#expBtn').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:'application/json'}));a.download=`고래책방-백업-${dkey(new Date())}.json`;a.click();};
   $('#impBtn').onclick=()=>{const i=document.createElement('input');i.type='file';i.accept='application/json';i.onchange=async()=>{try{const j=JSON.parse(await i.files[0].text());S=mergeState(S,j);normalizeEvents(S);save();render();closeModal();toast('백업을 합쳤어요');}catch(e){toast('백업 파일 오류');}};i.click();};
+  $('#delMajorsBtn').onclick=delMajorsDialog;
   $('#resetBtn').onclick=()=>confirmBox('이 기기의 모든 메달을 지울까요? (책 목록은 남아요)',()=>{for(const b of Object.values(S.books)){if(b.m){b.m=0;b.u=now();}}save();render();});
 }
 
