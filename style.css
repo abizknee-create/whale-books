@@ -24,7 +24,13 @@ aside{width:250px;flex-shrink:0;padding:14px;overflow:auto;background:rgba(255,2
 .major .n{margin-left:auto;font-size:15px;background:var(--foam);border-radius:999px;padding:3px 9px}
 .major.on{background:var(--sun);box-shadow:0 5px 0 #c99a00;transform:translateY(-2px)}
 .soft{font:inherit;font-size:18px;border:3px dashed rgba(255,255,255,.8);border-radius:18px;background:rgba(255,255,255,.12);color:#fff;padding:12px;min-height:56px}
+.cwrap{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0}
 #content{flex:1;overflow:auto;padding:16px 18px 110px}
+.sbar{display:flex;align-items:center;gap:8px;margin:12px 18px 0;padding:6px 8px 6px 14px;background:#fff;border:3px solid #7fd0f5;border-radius:999px;box-shadow:0 4px 12px rgba(0,60,120,.18)}
+.sbar .sic{font-size:24px}.sbar input{flex:1;min-width:0;border:0;outline:0;font:inherit;font-size:20px;background:transparent;padding:8px 0}
+.sres td.title .path{display:block;font-size:13px;color:#3a8fc4;margin-bottom:2px}
+.sres tr.jump{cursor:pointer}.sres mark{background:#ffe27a;border-radius:4px;padding:0 2px}
+.nores{text-align:center;font-size:22px;color:#4a8db8;padding:40px 10px}
 .mhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
 .mhead h2{margin:0;font-size:30px;font-weight:normal;color:#fff;text-shadow:2px 2px 0 var(--deep)}
 .prog{flex:1;min-width:160px;height:26px;background:rgba(255,255,255,.35);border-radius:999px;overflow:hidden;position:relative}
@@ -104,3 +110,6 @@ tr.done1{background:#fff6ec}tr.done2{background:#f2f6fa}tr.done3{background:#fff
 td.title .au2{display:none}
 .login{background:#e8f6ff;border-radius:16px;padding:10px 14px;margin:8px 0}.login.on{background:#e6fff0}
 #loginBtn.on{box-shadow:0 0 0 3px #7cf0a8 inset}
+tr.flash td{animation:flash 2s}
+@keyframes flash{0%,60%{background:#fff2a8}100%{background:transparent}}
+@media (max-width:480px){header h1{font-size:0}header h1::first-letter{font-size:26px}.icon-btn{min-width:38px;padding-left:2px;padding-right:2px}.tab{padding:8px 9px;font-size:15px}.sbar{margin:10px 10px 0}.sbar input{font-size:17px}html,body{overflow-x:hidden}}

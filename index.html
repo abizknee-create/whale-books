@@ -11,6 +11,7 @@
  <h1>🐳 고래 책방</h1>
  <nav><button class="tab on" data-view="books">📚 책 바다</button><button class="tab" data-view="att">📅 출석부</button></nav>
  <div class="score" id="score"></div>
+ <button class="icon-btn" id="searchBtn" aria-label="책 찾기" title="책 찾기">🔍</button>
  <button class="icon-btn" id="loginBtn" aria-label="구글 로그인" title="구글로 로그인">🔑</button>
  <button class="icon-btn" id="setBtn" aria-label="설정">⚙️</button>
 </header>
@@ -18,7 +19,7 @@
  <section id="vBooks" class="view">
   <aside id="side"><div id="majors"></div>
    <button class="soft" id="addMajor">＋ 대분류</button><button class="soft" id="importBtn">📄 PDF 불러오기</button></aside>
-  <div id="content"></div>
+  <div class="cwrap"><div id="sbar" class="sbar hidden"><span class="sic">🔍</span><input id="q" type="search" placeholder="책 이름이나 저자로 찾기 (초성 ㄱㄹ도 OK!)" autocomplete="off" enterkeyhint="search"><button class="btn" id="qClear" aria-label="검색 닫기">✖ 닫기</button></div><div id="content"></div></div>
  </section>
  <section id="vAtt" class="view hidden"><div id="att"></div></section>
 </main>

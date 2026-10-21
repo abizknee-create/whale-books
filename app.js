@@ -43,7 +43,30 @@ function renderScore(){const bs=liveBooks();const c=[0,0,0,0];bs.forEach(b=>c[b.
 function renderSide(){const ms=majors();if(!ms.includes(sel))sel=ms[0]||'';
   $('#majors').innerHTML=ms.map((m,i)=>{const bs=liveBooks().filter(b=>S.cats[b.c].major===m);const d=bs.filter(b=>b.m>0).length;
    return `<button class="major ${m===sel?'on':''}" data-m="${esc(m)}">${['🐳','🦈','🐙','🐢','🐬','🦀','🐠','🦑'][i%8]} ${esc(m)}<span class="n">${d}/${bs.length}</span></button>`}).join('');}
+// ---------- 검색 ----------
+let Q='';
+const CHO='ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ';
+function cho(str){let r='';for(const ch of str){const c=ch.charCodeAt(0);r+=(c>=0xAC00&&c<=0xD7A3)?CHO[Math.floor((c-0xAC00)/588)]:ch;}return r;}
+function norm(x){return (x||'').normalize('NFC').toLowerCase().replace(/\s+/g,'');}
+function isChoQ(q){return /^[ㄱ-ㅎ]+$/.test(q);}
+function matchBook(b,q){const n=norm(q);if(!n)return false;
+  for(const f of [b.title,b.author]){const v=norm(f);if(v.includes(n))return true;if(isChoQ(n)&&cho(v).includes(n))return true;}return false;}
+function hl(text){const q=Q.trim();if(!q||isChoQ(norm(q)))return esc(text);const i=(text||'').toLowerCase().indexOf(q.toLowerCase());
+  if(i<0)return esc(text);return esc(text.slice(0,i))+'<mark>'+esc(text.slice(i,i+q.length))+'</mark>'+esc(text.slice(i+q.length));}
+function renderSearch(el){
+  const ms=majors();const bs=liveBooks().filter(b=>matchBook(b,Q)).sort((a,b)=>{const ca=S.cats[a.c],cb=S.cats[b.c];return ms.indexOf(ca.major)-ms.indexOf(cb.major)||(ca.o||0)-(cb.o||0)||a.o-b.o;});
+  if(!bs.length){el.innerHTML=`<div class="nores">🦈 "${esc(Q)}" 책을 못 찾았어요<br><small>다른 글자로 찾아볼까요?</small></div>`;return;}
+  el.innerHTML=`<div class="group sres"><div class="ghead"><span class="t">🔍 찾은 책 ${bs.length}권 <span class="small">줄을 누르면 그 분류로 가요</span></span></div>
+  <table><thead><tr><th>책명</th><th class="au">저자</th><th class="st">스탬프</th></tr></thead><tbody>`+
+  bs.map(b=>{const c=S.cats[b.c];return `<tr class="done${b.m||0} jump" data-jump="${b.id}"><td class="title"><span class="path">${esc(c.major)} › ${esc(c.minor)}</span>${hl(b.title)}<span class="au2">${hl(b.author)}</span></td><td class="au">${hl(b.author)}</td>
+   <td class="st"><button class="stamp m${b.m||0}" data-stamp="${b.id}" aria-label="스탬프"><span class="e">${MEDAL[b.m||0].e}</span>${b.m?'':'<small>꾹!</small>'}</button></td></tr>`}).join('')+`</tbody></table></div>`;
+}
+function openSearch(){$('#sbar').classList.remove('hidden');if(!$('#vBooks').classList.contains('hidden'))$('#q').focus();else{document.querySelector('[data-view="books"]').click();$('#q').focus();}}
+function closeSearch(){Q='';$('#q').value='';$('#sbar').classList.add('hidden');renderContent();}
+function jumpTo(id){const b=S.books[id];if(!b)return;sel=S.cats[b.c].major;localStorage.setItem('wb_sel',sel);closeSearch();render();
+  requestAnimationFrame(()=>{const r=document.querySelector(`[data-stamp="${id}"]`)?.closest('tr');if(r){r.scrollIntoView({block:'center'});r.classList.add('flash');setTimeout(()=>r.classList.remove('flash'),2000);}});}
 function renderContent(){
+  if(Q.trim())return renderSearch($('#content'));
   const el=$('#content');if(!sel){el.innerHTML=`<div class="empty">🐳<br>아직 책이 없어요!<br>왼쪽에서 PDF를 불러오거나 대분류를 추가해 주세요.</div>`;return;}
   const cats=liveCats().filter(c=>c.major===sel);const bs=liveBooks().filter(b=>S.cats[b.c].major===sel);
   const done=bs.filter(b=>b.m>0).length;const pct=bs.length?Math.round(done/bs.length*100):0;
@@ -196,7 +219,8 @@ function settings(){
 
 // ---------- 이벤트 ----------
 document.addEventListener('click',e=>{
-  const t=e.target.closest('button,[data-day]');if(!t)return;
+  const t=e.target.closest('button,[data-day],[data-jump]');if(!t)return;
+  if(t.dataset.jump)return jumpTo(t.dataset.jump);
   if(t.dataset.stamp)return stamp(t.dataset.stamp,t);
   if(t.dataset.m!==undefined&&t.classList.contains('major')){sel=t.dataset.m;localStorage.setItem('wb_sel',sel);$('#side').classList.remove('open');render();$('#content').scrollTop=0;return;}
   if(t.dataset.view){document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));$('#vBooks').classList.toggle('hidden',t.dataset.view!=='books');$('#vAtt').classList.toggle('hidden',t.dataset.view!=='att');$('#menuBtn').style.visibility=t.dataset.view==='books'?'':'hidden';render();return;}
@@ -215,6 +239,10 @@ $('#addMajor').onclick=()=>ask('＋ 대분류 추가','대분류 이름','',v=>{
 $('#importBtn').onclick=()=>$('#pdfFile').click();
 $('#pdfFile').onchange=e=>{importFiles([...e.target.files]);e.target.value='';};
 $('#setBtn').onclick=settings;
+$('#searchBtn').onclick=()=>$('#sbar').classList.contains('hidden')||$('#vBooks').classList.contains('hidden')?openSearch():closeSearch();
+$('#q').addEventListener('input',e=>{Q=e.target.value;renderContent();$('#content').scrollTop=0;});
+$('#q').addEventListener('keydown',e=>{if(e.key==='Escape')closeSearch();if(e.key==='Enter')e.target.blur();});
+$('#qClear').onclick=closeSearch;
 $('#loginBtn').onclick=()=>currentUser()?settings():doSignIn();
 $('#menuBtn').onclick=()=>$('#side').classList.toggle('open');
 $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
