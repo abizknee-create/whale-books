@@ -66,8 +66,8 @@ tr.done1{background:#fff6ec}tr.done2{background:#f2f6fa}tr.done3{background:#fff
 .bigmedal{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);text-align:center;animation:big 4.4s forwards;color:#fff;text-shadow:3px 3px 0 var(--deep)}
 .bigmedal .m{font-size:170px;line-height:1;filter:drop-shadow(0 8px 0 rgba(0,0,0,.2))}.bigmedal .w{font-size:40px}
 @keyframes big{0%{transform:translate(-50%,-50%) scale(0) rotate(-200deg)}25%{transform:translate(-50%,-50%) scale(1.2) rotate(10deg)}35%,80%{transform:translate(-50%,-50%) scale(1)}100%{transform:translate(-50%,-50%) scale(1.1);opacity:0}}
-.dash{position:absolute;font-size:110px;top:60%;animation:dash 4.4s ease-in-out forwards}
-@keyframes dash{from{left:-160px}to{left:110vw}}
+.dash{position:absolute;font-size:220px;line-height:1;top:45%;animation:dash 4.4s ease-in-out forwards}
+@keyframes dash{from{left:-320px}to{left:110vw}}
 .modal{position:fixed;inset:0;background:rgba(3,30,60,.55);z-index:40;display:flex;align-items:center;justify-content:center;padding:16px}
 .card{background:#fff;border-radius:26px;padding:20px;width:min(560px,100%);max-height:90vh;overflow:auto;font-size:18px;box-shadow:0 10px 0 rgba(0,0,0,.2)}
 .card h3{margin:0 0 12px;font-size:26px;font-weight:normal}

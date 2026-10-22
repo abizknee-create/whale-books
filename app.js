@@ -283,7 +283,7 @@ const bub=document.querySelector('.bubbles');for(let i=0;i<18;i++){const s=docum
 render();updateLogin();
 let wasIn=false;onUser(u=>{updateLogin();if(u&&!wasIn)doSync(false);wasIn=!!u;});
 initAuth();window.addEventListener('online',()=>initAuth());
-const APP_VERSION='v10';
+const APP_VERSION='v11';
 if('serviceWorker' in navigator){
   const hadCtrl=!!navigator.serviceWorker.controller;
   navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(reg=>{const up=()=>reg.update().catch(()=>{});up();
