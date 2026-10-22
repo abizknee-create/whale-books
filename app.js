@@ -232,7 +232,7 @@ function settings(){
   ${loginHtml()}
   <div class="row"><button type="button" class="btn" id="expBtn">💾 백업 저장</button><button type="button" class="btn" id="impBtn">📂 백업 불러오기</button><button type="button" class="btn danger" id="resetBtn">초기화</button></div>
   <div class="row"><button type="button" class="btn danger" id="delMajorsBtn">🗑️ 대분류 삭제(선택/전체)</button></div>
-  <div class="row"><button type="button" class="btn" data-close>닫기</button></div></form>`,()=>{});
+  <div class="row"><button type="button" class="btn" data-close>닫기</button></div><p class="ver" style="text-align:center;color:#8ab;font-size:14px;margin:6px 0 0">🐳 버전 ${APP_VERSION}</p></form>`,()=>{});
   const g=$('#loginGo');if(g)g.onclick=()=>{closeModal();doSignIn();};
   const o=$('#logoutBtn');if(o)o.onclick=async()=>{await signOutUser();closeModal();toast('로그아웃했어요 (이 기기 기록은 남아요)');};
   const n=$('#syncNow');if(n)n.onclick=()=>doSync(false);
@@ -283,5 +283,13 @@ const bub=document.querySelector('.bubbles');for(let i=0;i<18;i++){const s=docum
 render();updateLogin();
 let wasIn=false;onUser(u=>{updateLogin();if(u&&!wasIn)doSync(false);wasIn=!!u;});
 initAuth();window.addEventListener('online',()=>initAuth());
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
+const APP_VERSION='v9';
+if('serviceWorker' in navigator){
+  const hadCtrl=!!navigator.serviceWorker.controller;
+  navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(reg=>{const up=()=>reg.update().catch(()=>{});up();
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)up();});window.addEventListener('focus',up);});
+  // 새 버전이 자리 잡으면 한 번만 새로고침(무한 새로고침 방지)
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!hadCtrl)return;
+    const last=+sessionStorage.getItem('wb_reload_at')||0;if(Date.now()-last<15000)return;sessionStorage.setItem('wb_reload_at',Date.now());location.reload();});
+}
 window.__wb={get S(){return S},stamp,mergeState,normalizeEvents};
