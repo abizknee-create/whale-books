@@ -9,7 +9,7 @@
 <header class="top">
  <button class="menu-btn" id="menuBtn" aria-label="메뉴">☰</button>
  <h1>🐳 고래 책방</h1>
- <nav><button class="tab on" data-view="books">📚 책 바다</button><button class="tab" data-view="att">📅 출석부</button></nav>
+ <nav><button class="tab on" data-view="books">📚 책 바다</button><button class="tab" data-view="att">📅 출석부</button><button class="tab" data-view="cpn">🎁 쿠폰<span id="cpnN" class="badge"></span></button></nav>
  <div class="score" id="score"></div>
  <button class="icon-btn" id="searchBtn" aria-label="책 찾기" title="책 찾기">🔍</button>
  <button class="icon-btn" id="loginBtn" aria-label="구글 로그인" title="구글로 로그인">🔑</button>
@@ -22,6 +22,7 @@
   <div class="cwrap"><div id="sbar" class="sbar hidden"><span class="sic">🔍</span><input id="q" type="search" placeholder="책 이름이나 저자로 찾기 (초성 ㄱㄹ도 OK!)" autocomplete="off" enterkeyhint="search"><button class="btn" id="qClear" aria-label="검색 닫기">✖ 닫기</button></div><div id="content"></div></div>
  </section>
  <section id="vAtt" class="view hidden"><div id="att"></div></section>
+ <section id="vCpn" class="view hidden"><div id="cpn"></div></section>
 </main>
 <input type="file" id="pdfFile" accept="application/pdf" multiple hidden>
 <div id="modal" class="modal hidden"><div class="card" id="modalCard"></div></div>

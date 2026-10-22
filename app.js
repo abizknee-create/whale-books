@@ -11,13 +11,14 @@ const hid=(...a)=>{let h1=0x811c9dc5,h2=5381;const s=a.join('\u0001').toLowerCas
 const pad=n=>String(n).padStart(2,'0');
 const dkey=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const MEDAL=[{e:'⭐',n:'도장 찍기'},{e:'🥉',n:'동메달'},{e:'🥈',n:'은메달'},{e:'🥇',n:'금메달'}];
-const CHEER=['','우와! 동메달! 🐠','대단해! 은메달! 🐬','최고야! 금메달! 🐳'];
+const MEDAL=[{e:'⭐',n:'도장 찍기'},{e:'🐙',n:'동메달'},{e:'🥈',n:'은메달'},{e:'🥇',n:'금메달'}];
+const CHEER=['','우와! 문어 동메달! 🐙','대단해! 은메달! 🐬','최고야! 금메달! 🐳'];
 
 // ---------- 상태 ----------
 let S=JSON.parse(localStorage.getItem('wb_state')||'null');
 localStorage.removeItem('wb_cfg');
 if(!S){S={books:{},cats:{},events:{}};seedImport(SEED);}
+S.coupons=S.coupons||{};
 let sel=localStorage.getItem('wb_sel')||'';
 let calMonth=new Date();calMonth.setDate(1);
 // 스탬프를 빈 별로 되돌리면(m=0 이벤트) 그 책의 직전 리셋 이후 메달 이벤트를 취소(x=1) 표시.
@@ -37,9 +38,9 @@ function catFor(major,minor){let c=liveCats().find(c=>c.major===major&&c.minor==
 function seedImport(list){let o=1;for(const b of list){const c=catFor(b.major,b.minor);const id=hid('b',b.major,b.minor,b.title);if(S.books[id]&&!S.books[id].del)continue;S.books[id]={id,c:c.id,title:b.title,author:b.author||'',m:0,o:o++,u:S.books[id]?now():0};}}
 
 // ---------- 화면 ----------
-function render(){renderSide();renderContent();renderScore();if(!$('#vAtt').classList.contains('hidden'))renderAtt();}
+function render(){renderSide();renderContent();renderScore();if(!$('#vAtt').classList.contains('hidden'))renderAtt();renderCoupons();}
 function renderScore(){const bs=liveBooks();const c=[0,0,0,0];bs.forEach(b=>c[b.m||0]++);
-  $('#score').textContent=`🥇${c[3]} 🥈${c[2]} 🥉${c[1]}`;}
+  $('#score').textContent=`🥇${c[3]} 🥈${c[2]} 🐙${c[1]}`;}
 function renderSide(){const ms=majors();if(!ms.includes(sel))sel=ms[0]||'';
   $('#majors').innerHTML=ms.map((m,i)=>{const bs=liveBooks().filter(b=>S.cats[b.c].major===m);const d=bs.filter(b=>b.m>0).length;
    return `<button class="major ${m===sel?'on':''}" data-m="${esc(m)}">${['🐳','🦈','🐙','🐢','🐬','🦀','🐠','🦑'][i%8]} ${esc(m)}<span class="n">${d}/${bs.length}</span></button>`}).join('');}
@@ -82,18 +83,42 @@ function renderContent(){
   el.innerHTML=h;
 }
 
+// ---------- 쿠폰 ----------
+// 규칙: 금메달 책 수가 10,20,30…에 '처음' 도달할 때 쿠폰 1장. 쿠폰 id는 m10,m20…로 고정 →
+// 금메달을 되돌렸다 다시 올려도, 두 기기에서 동시에 만들어도 같은 id라 중복 없음. 사용하면 used:1(삭제 대신 표시).
+const CPN=['🐳 고래 쿠폰','🦈 상어 쿠폰','🐙 문어 쿠폰','🐬 돌고래 쿠폰','🐢 거북이 쿠폰'];
+function goldCount(){return liveBooks().filter(b=>b.m===3).length;}
+function checkCoupons(){const g=goldCount();const nw=[];S.coupons=S.coupons||{};
+  for(let n=10;n<=g;n+=10){const id='m'+n;if(!S.coupons[id]){S.coupons[id]={id,n,t:now(),u:now()};nw.push(S.coupons[id]);}}return nw;}
+function cpnCard(c,btn){const i=(c.n/10-1)%CPN.length;return `<div class="cpn c${i}"><div class="cw">${CPN[i].split(' ')[0]}</div><div class="ct"><b>${CPN[i]}</b><span>금메달 ${c.n}권 달성!</span><small>${new Date(c.t).toLocaleDateString('ko-KR')}</small></div>${btn?`<button class="btn primary" data-usecpn="${c.id}">사용</button>`:''}</div>`;}
+function couponParty(list){const fx=$('#fx');const em=['🎆','🎇','✨','🎉','🐳','🦈','⭐','💛','🫧'];
+  for(let k=0;k<5;k++)setTimeout(()=>{const cx=innerWidth*(.15+Math.random()*.7),cy=innerHeight*(.15+Math.random()*.4);
+    for(let i=0;i<26;i++){const s=document.createElement('div');s.className='conf';s.textContent=em[i%em.length];const a=Math.random()*Math.PI*2,d=120+Math.random()*260;
+      Object.assign(s.style,{left:cx+'px',top:cy+'px'});s.style.setProperty('--dx',Math.cos(a)*d+'px');s.style.setProperty('--dy',Math.sin(a)*d+'px');s.style.setProperty('--r',(Math.random()*720-360)+'deg');fx.appendChild(s);setTimeout(()=>s.remove(),6000);}},k*450);
+  sound(3);modal(`<div class="cpnpop"><div class="burst">🎉</div><h3>쿠폰을 받았어요!</h3>${list.map(c=>cpnCard(c,false)).join('')}<p>📦 쿠폰 보관소에 넣어 뒀어요</p><div class="row"><button class="btn primary" data-close>야호! 🐳</button></div></div>`);}
+function renderCoupons(){const el=$('#cpn');if(!el)return;const own=Object.values(S.coupons||{}).filter(c=>!c.used).sort((a,b)=>a.n-b.n);
+  const g=goldCount(),next=(Math.floor(g/10)+1)*10;$('#cpnN').textContent=own.length?own.length:'';
+  el.innerHTML=`<div class="cpnhead"><h2>🎁 쿠폰 보관소</h2><div class="big">내 쿠폰 <b>${own.length}</b>장</div>
+   <div class="prog"><i style="width:${(g%10)*10}%"></i><b>🥇 다음 쿠폰까지 ${next-g}권 (금메달 ${g}권)</b></div></div>`+
+   (own.length?`<div class="cpnlist">${own.map(c=>cpnCard(c,true)).join('')}</div>`:`<div class="nores">🐚 아직 쿠폰이 없어요<br><small>금메달 10권마다 쿠폰이 생겨요!</small></div>`);}
+function useCoupon(id){const c=S.coupons[id];if(!c)return;
+  modal(`<h3>🎁 쿠폰 사용</h3>${cpnCard(c,false)}<p>쿠폰을 사용할까요?</p><div class="row"><button class="btn" data-close>취소</button><button class="btn primary" id="okUse">사용</button></div>`);
+  $('#okUse').onclick=()=>{c.used=1;c.u=now();save();closeModal();render();toast('쿠폰을 썼어요! 🐬');};}
+
 // ---------- 스탬프 ----------
 function stamp(id,btn){const b=S.books[id];const prev=b.m||0;const m=(prev+1)%4;b.m=m;b.u=now();
   const t=new Date();const eid=uid();S.events[eid]={b:id,m,t:t.getTime(),d:dkey(t),title:b.title};
   if(!m)normalizeEvents(S);
   save();render();
   const nb=document.querySelector(`[data-stamp="${id}"]`);if(nb&&m)nb.classList.add('pop');
-  if(m)celebrate(m,nb||btn);else{toast('도장을 다시 처음부터! 🫧');sound(0);}
+  if(m)celebrate(m,nb||btn);
+  if(m===3){const nw=checkCoupons();if(nw.length)setTimeout(()=>couponParty(nw),2600);}
+  if(m);else{toast('도장을 다시 처음부터! 🫧');sound(0);}
 }
 function celebrate(m,origin){
   const fx=$('#fx');const r=origin?origin.getBoundingClientRect():{left:innerWidth/2,top:innerHeight/2,width:0,height:0};
   const cx=r.left+r.width/2,cy=r.top+r.height/2;
-  const items=[['🫧','🐟','⭐'],['🫧','🐠','🐟','✨','🐚'],['🫧','🐬','🐠','✨','💎','🐚'],['🐳','🦈','🐠','🐬','⭐','✨','🫧','💛','🐙']][m];
+  const items=[['🫧','🐟','⭐'],['🫧','🐙','🐙','✨','🐚'],['🫧','🐬','🐠','✨','💎','🐚'],['🐳','🦈','🐠','🐬','⭐','✨','🫧','💛','🐙']][m];
   const n=[0,24,40,70][m];
   for(let i=0;i<n;i++){const s=document.createElement('div');s.className='conf';s.textContent=items[i%items.length];
     const a=Math.random()*Math.PI*2,d=150+Math.random()*(m*180);s.style.left=cx+'px';s.style.top=cy+'px';
@@ -121,7 +146,7 @@ function renderAtt(){
     g+=`<div class="day ${e?'on':''} ${k===today?'today':''}" data-day="${k}"><span class="dn">${d}</span>${e?`<span class="ic">${e.length>=3?'🐳':'🦈'}</span><span class="cnt">${e.length}권</span>`:''}</div>`;}
   g+='</div>';
   $('#att').innerHTML=`<div class="cal"><div class="calh"><button data-cal="-1">◀</button><span>🗓️ ${y}년 ${mo+1}월 출석부</span><button data-cal="1">▶</button></div>
-   <div class="sum"><div>출석한 날<b>${days}일</b></div><div>이번 달 읽은 책<b>${ev.length}권</b></div><div>메달<b style="font-size:24px">🥇${medals[3]} 🥈${medals[2]} 🥉${medals[1]}</b></div></div>${g}
+   <div class="sum"><div>출석한 날<b>${days}일</b></div><div>이번 달 읽은 책<b>${ev.length}권</b></div><div>메달<b style="font-size:24px">🥇${medals[3]} 🥈${medals[2]} 🐙${medals[1]}</b></div></div>${g}
    <div class="daylist" id="daylist"><p class="help" style="color:#557">날짜를 누르면 그날 읽은 책이 보여요. (메달을 올릴 때마다 1권으로 셉니다)</p></div></div>`;
 }
 function showDay(k){const ev=Object.values(S.events).filter(e=>live(e)&&e.d===k).sort((a,b)=>a.t-b.t);
@@ -141,7 +166,7 @@ function bookForm(b,catId){const cats=liveCats();
   ${b?`<label>메달</label><select name="m">${MEDAL.map((x,i)=>`<option value="${i}" ${i===(b.m||0)?'selected':''}>${x.e} ${i?x.n:'없음'}</option>`).join('')}</select>`:''}
   <div class="row">${b?'<button type="button" class="btn danger" id="delB">🗑️ 삭제</button>':''}<button type="button" class="btn" data-close>취소</button><button class="btn primary">저장</button></div></form>`,
   fd=>{const o={title:String(fd.get('title')).trim(),author:String(fd.get('author')).trim(),c:fd.get('c')};if(!o.title)return false;
-    if(b){const pm=b.m||0,nm=+fd.get('m');Object.assign(b,o,{m:nm,u:now()});if(pm&&!nm){const t=new Date();S.events[uid()]={b:b.id,m:0,t:t.getTime(),d:dkey(t),title:b.title};normalizeEvents(S);}}else{const id=uid();S.books[id]={id,...o,m:0,o:now(),u:now()};}save();render();toast('저장했어요 🐬');});
+    if(b){const pm=b.m||0,nm=+fd.get('m');Object.assign(b,o,{m:nm,u:now()});if(pm&&!nm){const t=new Date();S.events[uid()]={b:b.id,m:0,t:t.getTime(),d:dkey(t),title:b.title};normalizeEvents(S);}}else{const id=uid();S.books[id]={id,...o,m:0,o:now(),u:now()};}const nw=checkCoupons();save();render();toast('저장했어요 🐬');if(nw.length)couponParty(nw);});
   if(b)$('#delB').onclick=()=>{confirmBox(`"${esc(b.title)}" 책을 지울까요?`,()=>{b.del=1;b.u=now();save();render();});};}
 
 // ---------- PDF ----------
@@ -172,7 +197,7 @@ let syncTimer,syncing=false,lastSync='',syncErr='';
 function scheduleSync(){clearTimeout(syncTimer);syncTimer=setTimeout(doSync,1500);}
 async function doSync(quiet=true){
   if(!currentUser()||syncing||!navigator.onLine)return;syncing=true;
-  try{const tok=await idToken();const remote=await pull(dbUrl(),DATA_PATH,tok);const R={books:remote.books||{},cats:remote.cats||{},events:remote.events||{}};const merged=mergeState(S,R);normalizeEvents(merged);
+  try{const tok=await idToken();const remote=await pull(dbUrl(),DATA_PATH,tok);const R={books:remote.books||{},cats:remote.cats||{},events:remote.events||{},coupons:remote.coupons||{}};const merged=mergeState(S,R);normalizeEvents(merged);
     const changedLocal=JSON.stringify(merged)!==JSON.stringify(S);const changedRemote=JSON.stringify(merged)!==JSON.stringify(R);
     if(changedRemote)await push(dbUrl(),DATA_PATH,tok,merged);
     if(changedLocal){S=merged;localStorage.setItem('wb_state',JSON.stringify(S));if($('#modal').classList.contains('hidden'))render();}
@@ -221,9 +246,10 @@ function settings(){
 document.addEventListener('click',e=>{
   const t=e.target.closest('button,[data-day],[data-jump]');if(!t)return;
   if(t.dataset.jump)return jumpTo(t.dataset.jump);
+  if(t.dataset.usecpn)return useCoupon(t.dataset.usecpn);
   if(t.dataset.stamp)return stamp(t.dataset.stamp,t);
   if(t.dataset.m!==undefined&&t.classList.contains('major')){sel=t.dataset.m;localStorage.setItem('wb_sel',sel);$('#side').classList.remove('open');render();$('#content').scrollTop=0;return;}
-  if(t.dataset.view){document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));$('#vBooks').classList.toggle('hidden',t.dataset.view!=='books');$('#vAtt').classList.toggle('hidden',t.dataset.view!=='att');$('#menuBtn').style.visibility=t.dataset.view==='books'?'':'hidden';render();return;}
+  if(t.dataset.view){document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));$('#vBooks').classList.toggle('hidden',t.dataset.view!=='books');$('#vAtt').classList.toggle('hidden',t.dataset.view!=='att');$('#vCpn').classList.toggle('hidden',t.dataset.view!=='cpn');$('#menuBtn').style.visibility=t.dataset.view==='books'?'':'hidden';render();return;}
   if(t.dataset.cal){calMonth.setMonth(calMonth.getMonth()+ +t.dataset.cal);renderAtt();return;}
   if(t.dataset.day)return showDay(t.dataset.day);
   const a=t.dataset.act;const c=t.dataset.c&&S.cats[t.dataset.c];

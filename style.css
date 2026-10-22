@@ -113,3 +113,17 @@ td.title .au2{display:none}
 tr.flash td{animation:flash 2s}
 @keyframes flash{0%,60%{background:#fff2a8}100%{background:transparent}}
 @media (max-width:480px){header h1{font-size:0}header h1::first-letter{font-size:26px}.icon-btn{min-width:38px;padding-left:2px;padding-right:2px}.tab{padding:8px 9px;font-size:15px}.sbar{margin:10px 10px 0}.sbar input{font-size:17px}html,body{overflow-x:hidden}}
+#vCpn{overflow:auto;justify-content:center}
+#cpn{width:min(900px,100%);padding:16px 16px 110px}
+.cpnhead{background:#fff;border-radius:22px;padding:16px 20px;box-shadow:0 6px 18px rgba(0,60,120,.2);margin-bottom:16px}
+.cpnhead h2{margin:0 0 6px;font-family:Jua,inherit;font-weight:normal;color:#0a4f8f}.cpnhead .big{font-size:22px;color:#0a4f8f;margin-bottom:8px}.cpnhead .big b{font-size:34px;color:#ff7b54}
+.cpnlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.cpn{position:relative;display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:20px;border:3px dashed rgba(255,255,255,.9);color:#fff;box-shadow:0 6px 16px rgba(0,40,90,.25);background:linear-gradient(135deg,#2bb3f0,#0a6fb5);margin:8px 0}
+.cpn.c1{background:linear-gradient(135deg,#7c8fa8,#3d5574)}.cpn.c2{background:linear-gradient(135deg,#ff9a8b,#e0567a)}.cpn.c3{background:linear-gradient(135deg,#5fe0c8,#1a9c8f)}.cpn.c4{background:linear-gradient(135deg,#a6e36b,#3f9a3a)}
+.cpn::before,.cpn::after{content:'';position:absolute;top:50%;width:22px;height:22px;margin-top:-11px;border-radius:50%;background:#e8f7ff}.cpn::before{left:-12px}.cpn::after{right:-12px}
+.cpn .cw{font-size:54px;filter:drop-shadow(2px 3px 0 rgba(0,0,0,.2))}.cpn .ct{flex:1;display:flex;flex-direction:column;text-align:left}.cpn .ct b{font-size:22px}.cpn .ct small{opacity:.85}
+.cpnpop{text-align:center}.cpnpop h3{font-size:28px;color:#ff7b54}.cpnpop .burst{font-size:64px;animation:pop 1.2s}
+.badge:not(:empty){display:inline-block;margin-left:4px;min-width:22px;padding:0 6px;border-radius:999px;background:#ff5a5a;color:#fff;font-size:14px;line-height:22px}
+@media (max-width:480px){.tab{padding:8px 6px;font-size:14px}}
+#cpn .nores{color:#fff;text-shadow:1px 1px 0 rgba(0,40,90,.5)}
+@media (max-width:480px){header h1{display:none}.icon-btn{min-width:34px}}
