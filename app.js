@@ -11,8 +11,8 @@ const hid=(...a)=>{let h1=0x811c9dc5,h2=5381;const s=a.join('\u0001').toLowerCas
 const pad=n=>String(n).padStart(2,'0');
 const dkey=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const MEDAL=[{e:'⭐',n:'도장 찍기'},{e:'🐙',n:'동메달'},{e:'🥈',n:'은메달'},{e:'🥇',n:'금메달'}];
-const CHEER=['','우와! 문어 동메달! 🐙','대단해! 은메달! 🐬','최고야! 금메달! 🐳'];
+const MEDAL=[{e:'⭐',n:'도장 찍기'},{e:'🥉',n:'동메달'},{e:'🥈',n:'은메달'},{e:'🥇',n:'금메달'}];
+const CHEER=['','우와! 동메달! 🐙','대단해! 은메달! 🐬','최고야! 금메달! 🐳'];
 
 // ---------- 상태 ----------
 let S=JSON.parse(localStorage.getItem('wb_state')||'null');
@@ -40,7 +40,7 @@ function seedImport(list){let o=1;for(const b of list){const c=catFor(b.major,b.
 // ---------- 화면 ----------
 function render(){renderSide();renderContent();renderScore();if(!$('#vAtt').classList.contains('hidden'))renderAtt();renderCoupons();}
 function renderScore(){const bs=liveBooks();const c=[0,0,0,0];bs.forEach(b=>c[b.m||0]++);
-  $('#score').textContent=`🥇${c[3]} 🥈${c[2]} 🐙${c[1]}`;}
+  $('#score').textContent=`🥇${c[3]} 🥈${c[2]} 🥉${c[1]}`;}
 function renderSide(){const ms=majors();if(!ms.includes(sel))sel=ms[0]||'';
   $('#majors').innerHTML=ms.map((m,i)=>{const bs=liveBooks().filter(b=>S.cats[b.c].major===m);const d=bs.filter(b=>b.m>0).length;
    return `<button class="major ${m===sel?'on':''}" data-m="${esc(m)}">${['🐳','🦈','🐙','🐢','🐬','🦀','🐠','🦑'][i%8]} ${esc(m)}<span class="n">${d}/${bs.length}</span></button>`}).join('');}
@@ -146,7 +146,7 @@ function renderAtt(){
     g+=`<div class="day ${e?'on':''} ${k===today?'today':''}" data-day="${k}"><span class="dn">${d}</span>${e?`<span class="ic">${e.length>=3?'🐳':'🦈'}</span><span class="cnt">${e.length}권</span>`:''}</div>`;}
   g+='</div>';
   $('#att').innerHTML=`<div class="cal"><div class="calh"><button data-cal="-1">◀</button><span>🗓️ ${y}년 ${mo+1}월 출석부</span><button data-cal="1">▶</button></div>
-   <div class="sum"><div>출석한 날<b>${days}일</b></div><div>이번 달 읽은 책<b>${ev.length}권</b></div><div>메달<b style="font-size:24px">🥇${medals[3]} 🥈${medals[2]} 🐙${medals[1]}</b></div></div>${g}
+   <div class="sum"><div>출석한 날<b>${days}일</b></div><div>이번 달 읽은 책<b>${ev.length}권</b></div><div>메달<b style="font-size:24px">🥇${medals[3]} 🥈${medals[2]} 🥉${medals[1]}</b></div></div>${g}
    <div class="daylist" id="daylist"><p class="help" style="color:#557">날짜를 누르면 그날 읽은 책이 보여요. (메달을 올릴 때마다 1권으로 셉니다)</p></div></div>`;
 }
 function showDay(k){const ev=Object.values(S.events).filter(e=>live(e)&&e.d===k).sort((a,b)=>a.t-b.t);
