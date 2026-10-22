@@ -1,5 +1,5 @@
 // 고래 책방 서비스워커. 앱 파일은 네트워크 우선(no-store) → 오프라인일 때만 캐시. 큰 라이브러리/아이콘만 캐시 우선.
-const V='v9';const C='whalebooks-'+V;
+const V='v10';const C='whalebooks-'+V;
 const APP=['./','index.html','style.css','app.js','extract.js','seed.js','sync.js','auth.js','config.js','manifest.webmanifest'];
 const STATIC=['pdf.min.mjs','pdf.worker.min.mjs','icon.svg','icon-192.png','icon-512.png'];
 const isStatic=p=>STATIC.some(f=>p.endsWith('/'+f));

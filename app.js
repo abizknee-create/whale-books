@@ -125,7 +125,7 @@ function celebrate(m,origin){
     s.style.setProperty('--dx',Math.cos(a)*d+'px');s.style.setProperty('--dy',(Math.sin(a)*d-80+Math.random()*300)+'px');s.style.setProperty('--r',(Math.random()*720-360)+'deg');
     s.style.animationDelay=Math.random()*.6+'s';fx.appendChild(s);setTimeout(()=>s.remove(),6000);}
   const big=document.createElement('div');big.className='bigmedal';big.innerHTML=`<div class="m">${MEDAL[m].e}</div><div class="w">${CHEER[m]}</div>`;fx.appendChild(big);setTimeout(()=>big.remove(),4600);
-  if(m>=2){const d=document.createElement('div');d.className='dash';d.textContent=m===3?'🐋':'🦈';d.style.transform='scaleX(-1)';fx.appendChild(d);setTimeout(()=>d.remove(),4600);}
+  if(m>=1){const d=document.createElement('div');d.className='dash';d.textContent=m===3?'🐋':m===2?'🦈':'🐙';d.style.transform='scaleX(-1)';fx.appendChild(d);setTimeout(()=>d.remove(),4600);}
   if(navigator.vibrate)navigator.vibrate(m===3?[60,40,60,40,120]:[50]);
   sound(m);
 }
@@ -283,7 +283,7 @@ const bub=document.querySelector('.bubbles');for(let i=0;i<18;i++){const s=docum
 render();updateLogin();
 let wasIn=false;onUser(u=>{updateLogin();if(u&&!wasIn)doSync(false);wasIn=!!u;});
 initAuth();window.addEventListener('online',()=>initAuth());
-const APP_VERSION='v9';
+const APP_VERSION='v10';
 if('serviceWorker' in navigator){
   const hadCtrl=!!navigator.serviceWorker.controller;
   navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(reg=>{const up=()=>reg.update().catch(()=>{});up();
