@@ -24,8 +24,13 @@ let calMonth=new Date();calMonth.setDate(1);
 // 스탬프를 빈 별로 되돌리면(m=0 이벤트) 그 책의 직전 리셋 이후 메달 이벤트를 취소(x=1) 표시.
 // m=0 이벤트에서 결정적으로 계산되므로 기존 기록·다른 기기 병합 후에도 같은 결과가 나와요.
 function normalizeEvents(st){const byB={};for(const[id,e]of Object.entries(st.events||{}))(byB[e.b]=byB[e.b]||[]).push([id,e]);
-  let ch=false;for(const list of Object.values(byB)){list.sort((a,b)=>a[1].t-b[1].t);let cyc=[];
-    for(const[,e]of list){if(e.m>0){if(!e.x)cyc.push(e);}else if(!e.x){for(const c of cyc){c.x=1;ch=true;}cyc=[];}}}
+  let ch=false;for(const[bid,list]of Object.entries(byB)){
+    // 같은 시각에 찍힌 이벤트도 동→은→금→리셋 순으로 처리 (빠른 연타/머지 대비)
+    list.sort((a,b)=>a[1].t-b[1].t||(a[1].s||0)-(b[1].s||0)||(a[1].m===0)-(b[1].m===0)||a[1].m-b[1].m||String(a[0]).localeCompare(String(b[0])));
+    let cyc=[];
+    for(const[,e]of list){if(e.m>0){if(!e.x)cyc.push(e);}else if(!e.x){for(const c of cyc){c.x=1;ch=true;}cyc=[];}}
+    // 책 메달이 비어 있는데 취소 안 된 상승이 남아 있으면(리셋 이벤트 유실·순서 꼬임) 출석에서 빼기
+    const book=st.books&&st.books[bid];if(book&&!(book.m>0)&&cyc.length){for(const c of cyc){c.x=1;ch=true;}}}
   return ch;}
 const live=e=>e.m>0&&!e.x;
 if(normalizeEvents(S))localStorage.setItem('wb_state',JSON.stringify(S));
@@ -106,8 +111,9 @@ function useCoupon(id){const c=S.coupons[id];if(!c)return;
   $('#okUse').onclick=()=>{c.used=1;c.u=now();save();closeModal();render();toast('쿠폰을 썼어요! 🐬');};}
 
 // ---------- 스탬프 ----------
+let _evtSeq=0;
 function stamp(id,btn){const b=S.books[id];const prev=b.m||0;const m=(prev+1)%4;b.m=m;b.u=now();
-  const t=new Date();const eid=uid();S.events[eid]={b:id,m,t:t.getTime(),d:dkey(t),title:b.title};
+  const t=new Date();const eid=uid();S.events[eid]={b:id,m,t:t.getTime(),s:++_evtSeq,d:dkey(t),title:b.title};
   if(!m)normalizeEvents(S);
   save();render();
   const nb=document.querySelector(`[data-stamp="${id}"]`);if(nb&&m)nb.classList.add('pop');
@@ -166,7 +172,7 @@ function bookForm(b,catId){const cats=liveCats();
   ${b?`<label>메달</label><select name="m">${MEDAL.map((x,i)=>`<option value="${i}" ${i===(b.m||0)?'selected':''}>${x.e} ${i?x.n:'없음'}</option>`).join('')}</select>`:''}
   <div class="row">${b?'<button type="button" class="btn danger" id="delB">🗑️ 삭제</button>':''}<button type="button" class="btn" data-close>취소</button><button class="btn primary">저장</button></div></form>`,
   fd=>{const o={title:String(fd.get('title')).trim(),author:String(fd.get('author')).trim(),c:fd.get('c')};if(!o.title)return false;
-    if(b){const pm=b.m||0,nm=+fd.get('m');Object.assign(b,o,{m:nm,u:now()});if(pm&&!nm){const t=new Date();S.events[uid()]={b:b.id,m:0,t:t.getTime(),d:dkey(t),title:b.title};normalizeEvents(S);}}else{const id=uid();S.books[id]={id,...o,m:0,o:now(),u:now()};}const nw=checkCoupons();save();render();toast('저장했어요 🐬');if(nw.length)couponParty(nw);});
+    if(b){const pm=b.m||0,nm=+fd.get('m');Object.assign(b,o,{m:nm,u:now()});if(pm&&!nm){const t=new Date();S.events[uid()]={b:b.id,m:0,t:t.getTime(),s:++_evtSeq,d:dkey(t),title:b.title};normalizeEvents(S);}}else{const id=uid();S.books[id]={id,...o,m:0,o:now(),u:now()};}const nw=checkCoupons();save();render();toast('저장했어요 🐬');if(nw.length)couponParty(nw);});
   if(b)$('#delB').onclick=()=>{confirmBox(`"${esc(b.title)}" 책을 지울까요?`,()=>{b.del=1;b.u=now();save();render();});};}
 
 // ---------- PDF ----------
@@ -283,10 +289,10 @@ const bub=document.querySelector('.bubbles');for(let i=0;i<18;i++){const s=docum
 render();updateLogin();
 let wasIn=false;onUser(u=>{updateLogin();if(u&&!wasIn)doSync(false);wasIn=!!u;});
 initAuth();window.addEventListener('online',()=>initAuth());
-const APP_VERSION='v11';
+const APP_VERSION='v12';
 if('serviceWorker' in navigator){
   const hadCtrl=!!navigator.serviceWorker.controller;
-  navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(reg=>{const up=()=>reg.update().catch(()=>{});up();
+  navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(reg=>{if(!reg)return;const up=()=>reg.update&&reg.update().catch(()=>{});up();
     document.addEventListener('visibilitychange',()=>{if(!document.hidden)up();});window.addEventListener('focus',up);});
   // 새 버전이 자리 잡으면 한 번만 새로고침(무한 새로고침 방지)
   navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!hadCtrl)return;
