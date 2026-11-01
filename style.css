@@ -127,3 +127,22 @@ tr.flash td{animation:flash 2s}
 @media (max-width:480px){.tab{padding:8px 6px;font-size:14px}}
 #cpn .nores{color:#fff;text-shadow:1px 1px 0 rgba(0,40,90,.5)}
 @media (max-width:480px){header h1{display:none}.icon-btn{min-width:34px}}
+
+/* v13 왕관·컬렉션 */
+.cr4{filter:sepia(1) saturate(2.2) hue-rotate(-20deg) brightness(.85)}.cr5{filter:grayscale(1) brightness(1.15)}.cr6{filter:drop-shadow(0 0 6px #ffd400)}
+.stamp.m4{border:4px solid #a8642c;background:radial-gradient(circle at 35% 30%,#ffe3c4,#e0a77a);box-shadow:0 0 10px #c98a55}
+.stamp.m5{border:4px solid #8899a8;background:radial-gradient(circle at 35% 30%,#fff,#c7d3de);box-shadow:0 0 12px #aebfcd}
+.stamp.m6{border:4px solid #d19a00;background:radial-gradient(circle at 35% 30%,#fff6c2,#ffcf33);box-shadow:0 0 22px #ffb700}
+tr.done4,tr.done5,tr.done6{background:#fff3c4}
+#col{width:min(900px,100%);padding:16px 16px 110px}
+.cpnhead .small{font-size:15px;color:#6a8aa8}
+.shield{background:linear-gradient(135deg,#d9f3ff,#a9e2ff);border-radius:16px;padding:10px 14px;color:#0a4f8f;font-size:20px;display:flex;flex-direction:column}.shield.used{background:#eef3f7;color:#7890a5}.shield small{font-size:14px}
+.bdgs{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:8px}
+.bdg{background:linear-gradient(180deg,#e8f8ff,#bfe6fb);border-radius:18px;padding:10px;text-align:center;display:flex;flex-direction:column;align-items:center;color:#0a4f8f}
+.bdg .ba{width:76px;height:76px;display:flex;align-items:center;justify-content:center}.bdg .ba .sv{width:76px;height:76px}.bdg .ba .em{font-size:60px;line-height:1}
+.bdg small{color:#6a8aa8;font-size:13px}.bdg.lock{opacity:.45;filter:grayscale(.7)}
+.reglist{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.reg{background:#fff6cf;border:3px solid #ffd54a;border-radius:16px;padding:10px 14px;display:flex;flex-direction:column;font-size:20px}.reg small{color:#8a6d00;font-size:14px}
+.cpn.c5{background:linear-gradient(135deg,#ffd54a,#e09a00)}.cpn.c6{background:linear-gradient(135deg,#ff8a5c,#e0452a)}
+.regpop .rt{font-size:22px;font-weight:700}
+.day.shielded{background:#e3f6ff}

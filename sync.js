@@ -1,6 +1,6 @@
 // Firebase Realtime Database REST 동기화. 구글 로그인 ID 토큰(?auth=)으로만 접근 가능.
 export function mergeState(a,b){
-  const out={books:{},cats:{},events:{},coupons:{}};
+  const out={books:{},cats:{},events:{},coupons:{},badges:{}};
   for(const k of ['books','cats']){const keys=new Set([...Object.keys(a[k]||{}),...Object.keys(b[k]||{})]);
     for(const id of keys){const x=(a[k]||{})[id],y=(b[k]||{})[id];out[k][id]=!x?y:!y?x:((y.u||0)>(x.u||0)?y:x);}}
   // 이벤트: 합집합. 한쪽이라도 취소(x)면 취소 유지 → 다른 기기 병합으로 되살아나지 않음.
@@ -12,13 +12,16 @@ export function mergeState(a,b){
   for(const id of new Set([...Object.keys(ca),...Object.keys(cb)])){const x=ca[id],y=cb[id];
     out.coupons[id]=!x?{...y}:!y?{...x}:{...x,t:Math.min(x.t||0,y.t||0)||x.t,used:(x.used||y.used)?1:undefined,u:Math.max(x.u||0,y.u||0)};
     if(!out.coupons[id].used)delete out.coupons[id].used;}
+  // 배지 기록(팝업은 한 번만): 합집합, 이른 시각 유지. 보이는지는 출석 기록에서 다시 계산.
+  const ba=a.badges||{},bb=b.badges||{};
+  for(const id of new Set([...Object.keys(ba),...Object.keys(bb)])){const x=ba[id],y=bb[id];out.badges[id]=!x?{...y}:!y?{...x}:{...x,t:Math.min(x.t||0,y.t||0)||x.t};}
   return out;
 }
 const u=(url,path,tok)=>`${url.replace(/\/$/,'')}/${path}.json?auth=${encodeURIComponent(tok)}`;
 const err=r=>new Error(r.status===401||r.status===403?'이 구글 계정은 허용되지 않았어요':'HTTP '+r.status);
 export async function pull(url,path,tok){
   const r=await fetch(u(url,path,tok),{cache:'no-store'});
-  if(!r.ok)throw err(r);const j=await r.json();return j||{books:{},cats:{},events:{},coupons:{}};
+  if(!r.ok)throw err(r);const j=await r.json();return j||{books:{},cats:{},events:{},coupons:{},badges:{}};
 }
 export async function push(url,path,tok,state){
   const r=await fetch(u(url,path,tok),{method:'PUT',body:JSON.stringify(state)});
