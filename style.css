@@ -129,8 +129,8 @@ tr.flash td{animation:flash 2s}
 @media (max-width:480px){header h1{display:none}.icon-btn{min-width:34px}}
 
 /* v13 왕관·컬렉션 */
-.cr4{filter:sepia(1) saturate(2.2) hue-rotate(-20deg) brightness(.85)}.cr5{filter:grayscale(1) brightness(1.15)}.cr6{filter:drop-shadow(0 0 6px #ffd400)}
-.stamp.m4{border:4px solid #a8642c;background:radial-gradient(circle at 35% 30%,#ffe3c4,#e0a77a);box-shadow:0 0 10px #c98a55}
+.cr4{-webkit-filter:grayscale(1) sepia(1) saturate(2) hue-rotate(-28deg) brightness(.6);filter:grayscale(1) sepia(1) saturate(2) hue-rotate(-28deg) brightness(.6)}.cr5{-webkit-filter:grayscale(1) brightness(1.05) contrast(1.1);filter:grayscale(1) brightness(1.05) contrast(1.1)}.cr6{filter:drop-shadow(0 0 6px #ffd400)}
+.stamp.m4{border:4px solid #7a4a2a;background:radial-gradient(circle at 35% 30%,#e8c7ad,#a0673f);box-shadow:0 0 8px #8a5533}
 .stamp.m5{border:4px solid #8899a8;background:radial-gradient(circle at 35% 30%,#fff,#c7d3de);box-shadow:0 0 12px #aebfcd}
 .stamp.m6{border:4px solid #d19a00;background:radial-gradient(circle at 35% 30%,#fff6c2,#ffcf33);box-shadow:0 0 22px #ffb700}
 tr.done4,tr.done5,tr.done6{background:#fff3c4}

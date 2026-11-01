@@ -197,7 +197,7 @@ function celebrate(m,origin){
   const cx=r.left+r.width/2,cy=r.top+r.height/2;
   const items=[['🫧','🐟','⭐'],['🫧','🐙','🐙','✨','🐚'],['🫧','🐬','🐠','✨','💎','🐚'],['🐳','🦈','🐠','🐬','⭐','✨','🫧','💛','🐙'],['👑','🫧','✨','🐚'],['👑','💎','✨','🐬','🫧'],['👑','👑','🎉','✨','💛','🐳','🎆']][m];
   const n=[0,24,40,70,40,55,90][m];
-  for(let i=0;i<n;i++){const s=document.createElement('div');s.className='conf';s.textContent=items[i%items.length];
+  for(let i=0;i<n;i++){const s=document.createElement('div');s.className='conf'+(items[i%items.length]==='👑'?' cr'+m:'');s.textContent=items[i%items.length];
     const a=Math.random()*Math.PI*2,d=150+Math.random()*(Math.min(m,3)*180);s.style.left=cx+'px';s.style.top=cy+'px';
     s.style.setProperty('--dx',Math.cos(a)*d+'px');s.style.setProperty('--dy',(Math.sin(a)*d-80+Math.random()*300)+'px');s.style.setProperty('--r',(Math.random()*720-360)+'deg');
     s.style.animationDelay=Math.random()*.6+'s';fx.appendChild(s);setTimeout(()=>s.remove(),6000);}
@@ -362,7 +362,7 @@ checkBadges();checkCoupons(); // 다른 기기/지난 기록으로 이미 달성
 render();updateLogin();
 let wasIn=false;onUser(u=>{updateLogin();if(u&&!wasIn)doSync(false);wasIn=!!u;});
 initAuth();window.addEventListener('online',()=>initAuth());
-const APP_VERSION='v14';
+const APP_VERSION='v15';
 if('serviceWorker' in navigator){
   const hadCtrl=!!navigator.serviceWorker.controller;
   navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(reg=>{if(!reg)return;const up=()=>reg.update&&reg.update().catch(()=>{});up();
