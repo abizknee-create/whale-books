@@ -362,7 +362,7 @@ checkBadges();checkCoupons(); // 다른 기기/지난 기록으로 이미 달성
 render();updateLogin();
 let wasIn=false;onUser(u=>{updateLogin();if(u&&!wasIn)doSync(false);wasIn=!!u;});
 initAuth();window.addEventListener('online',()=>initAuth());
-const APP_VERSION='v13';
+const APP_VERSION='v14';
 if('serviceWorker' in navigator){
   const hadCtrl=!!navigator.serviceWorker.controller;
   navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(reg=>{if(!reg)return;const up=()=>reg.update&&reg.update().catch(()=>{});up();
